@@ -1,0 +1,55 @@
+﻿<Rule Name="ComplexSecurityRule" Type="Advanced" ID="UniqueID7890">
+    <Description>
+        This rule detects advanced security threats in a network environment. It employs multiple conditions and actions to provide comprehensive threat detection and response.
+    </Description>
+    <Query>
+        <FromClause>
+            <Table Name="NetworkEvents" Alias="networkEvent" AliasType="Positive" />
+        </FromClause>
+        <WhereClause TimeWindowSize="5" TimeUnit="Minute">
+            <Condition ConditionType="Positive" TableAlias="networkEvent">
+                <BasicCondition Operator="And" JoinCondition="No" Negated="No" TableAlias="networkEvent">
+                    <!-- Condition 1: Suspicious Source IP -->
+                    <Variable TableAlias="networkEvent" Column="sourceIp" />
+                    <Resource ID="UniqueSuspiciousIPListID" URI="/All Lists/SuspiciousIPs" ReferenceID="SuspiciousIPListReference" />
+                    
+                    <!-- Condition 2: High Volume of Outbound Traffic -->
+                    <Variable TableAlias="networkEvent" Column="outboundTraffic" />
+                    <NumericComparison Operator="GreaterThanOrEqualTo">10000000</NumericComparison>
+                </BasicCondition>
+            </Condition>
+        </WhereClause>
+        <GroupByClause>
+            <Variable TableAlias="networkEvent" Column="sourceIp" />
+            <Variable TableAlias="networkEvent" Column="destinationIp" />
+        </GroupByClause>
+    </Query>
+    <Actions>
+        <Action Event="OnFirstEvent">
+            <SendToConsole />
+        </Action>
+        <Action Event="OnFirstEvent">
+            <SetEventField EventFieldName="agentSeverity" EventFieldValue="High" />
+        </Action>
+        <Action Event="OnFirstEvent" Enabled="true">
+            <SendToNotifier AckRequired="Yes" NotificationMessage="Advanced Security Threat Detected">
+                <Resource URI="/All Destinations/SOC Operators/" ID="UniqueSecurityDestinationID" ReferenceID="SecurityDestinationReference" />
+            </SendToNotifier>
+        </Action>
+        <Action Event="OnRepeatEvent" Enabled="true">
+            <SendToNotifier AckRequired="No" NotificationMessage="Advanced Security Threat Repeated">
+                <Resource URI="/All Destinations/SOC Operators/" ID="UniqueSecurityDestinationID" ReferenceID="SecurityDestinationReference" />
+            </SendToNotifier>
+        </Action>
+        <Action Event="OnThresholdExceeded" Enabled="true">
+            <CreateNewCase CaseName="Advanced Security Threat Detected" CaseDescription="Case for Advanced Security Threat" Priority="1" Status="Assigned">
+                <CaseGroup>
+                    <Resource URI="/All Cases/SecurityCases" ID="UniqueSecurityCaseGroupID" ReferenceID="SecurityCaseGroupReference" />
+                </CaseGroup>
+            </CreateNewCase>
+        </Action>
+        <Action Event="OnThresholdExceeded" Enabled="true">
+            <RunScript ScriptName="quarantine_device.sh" ScriptParameters="-d $sourceIp -p 22" />
+        </Action>
+    </Actions>
+</Rule>

@@ -1,0 +1,40 @@
+title: Malicious Web Requests Rule
+description: Detects malicious web requests based on predefined criteria.
+logsource:
+    category: web
+    product: http
+detection:
+    selection:
+        - "sourceIP matches any ('maliciousagent', 'bot', 'spider')"
+        - "requestSize >= 10000"
+condition: selection
+fields:
+    - sourceIP
+    - requestSize
+level: high
+falsepositives:
+    - Legitimate web traffic
+tags:
+    - web
+    - security
+references:
+    - https://example.com/malicious-web-requests
+logsource:
+    category: web
+    product: http
+detection:
+    selection:
+        - "sourceIP matches any ('maliciousagent', 'bot', 'spider')"
+        - "requestSize >= 10000"
+condition: selection
+fields:
+    - sourceIP
+    - requestSize
+level: high
+falsepositives:
+    - Legitimate web traffic
+tags:
+    - web
+    - security
+references:
+    - https://example.com/malicious-web-requests

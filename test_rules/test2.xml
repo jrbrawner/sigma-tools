@@ -1,0 +1,48 @@
+<Rule Name="AdvancedCorrelationRule" Type="Advanced" ID="UniqueID123456">
+    <Description>
+        This rule detects critical internal events related to low free space percentage in ASM database table spaces. It triggers when free space falls below the defined threshold in server.properties (default: 2%). Notifies the Database Storage Operator group.
+    </Description>
+    <Query>
+        <FromClause>
+            <Table Name="Event" Alias="event1" AliasType="Positive" />
+        </FromClause>
+        <WhereClause TimeWindowSize="2" TimeUnit="Minute" Threshold="2">
+            <Condition ConditionType="Positive" TableAlias="event1">
+                <BasicCondition Operator="InZone" JoinCondition="No" Negated="No" TableAlias="event1" IgnoreCase="Yes">
+                    <Variable TableAlias="event1" />
+                    <Resource ID="UniqueResourceID" URI="/All Filters/CustomFilterPath" ReferenceID="CustomFilterReference" />
+                </BasicCondition>
+            </Condition>
+        </WhereClause>
+        <GroupByClause>
+            <Variable TableAlias="event1" Column="deviceCustomNumber1Label" />
+            <Variable TableAlias="event1" Column="deviceCustomNumber1" />
+            <Variable TableAlias="event1" Column="customField3" />
+        </GroupByClause>
+    </Query>
+    <Actions>
+        <Action Event="OnFirstEvent">
+            <SendToConsole />
+        </Action>
+        <Action Event="OnFirstEvent">
+            <SetEventField EventFieldName="agentSeverity" EventFieldValue="Very-High" />
+        </Action>
+        <Action Event="OnFirstEvent" Enabled="true">
+            <SendToNotifier AckRequired="Yes" NotificationMessage="ASM Database Free Space is less than 2%.">
+                <Resource URI="/All Destinations/SOC Operators/" ID="UniqueDestinationID" ReferenceID="CustomDestinationReference" />
+            </SendToNotifier>
+        </Action>
+        <Action Event="OnRepeatEvent" Enabled="true">
+            <SendToNotifier AckRequired="No" NotificationMessage="ASM Database Free Space remains critical.">
+                <Resource URI="/All Destinations/SOC Operators/" ID="UniqueDestinationID" ReferenceID="CustomDestinationReference" />
+            </SendToNotifier>
+        </Action>
+        <Action Event="OnThresholdExceeded" Enabled="true">
+            <CreateNewCase CaseName="ASM Database Free Space - Critical" CaseDescription="Case for ASM Database Free Space below threshold" Priority="3" Status="Unassigned">
+                <CaseGroup>
+                    <Resource URI="/All Cases/CustomCasePath" ID="UniqueCaseGroupID" ReferenceID="CustomCaseGroupReference" />
+                </CaseGroup>
+            </CreateNewCase>
+        </Action>
+    </Actions>
+</Rule>
