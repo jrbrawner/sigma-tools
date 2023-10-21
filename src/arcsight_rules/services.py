@@ -6,19 +6,18 @@ from src.arcsight_rules.classes import ArcSightRule
 folder_path = "test_rules"
 
 def parse_xml_rules(db: Session):
+    
+    rule_list = []
 
     for file in os.listdir(folder_path):
-        if ".xml" in file:
-            data = open(f"{folder_path}/{file}").read()
-        
-    parser = ET.XMLParser(encoding="utf-8")
-    root = ET.fromstring(data, parser)
-    
-    rule = ArcSightRule(root)
+        if ".xml" in file and "test" in file:
+            data = open(f"{folder_path}/{file}", encoding="utf-8").read()
+            
+            rule = ArcSightRule(data)
+            rule_list.append(rule)
+            
 
-    rule.fields_being_queried()
-
-    return rule.serialize()
+    return [x.parsed_serialize() for x in rule_list]
 
 
         

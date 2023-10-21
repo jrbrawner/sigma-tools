@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lists>
+    <list name="MaliciousIPs">
+        <listType>Dynamic</listType>
+        <entries>
+            <entry id="1" value="192.168.1.100">
+                <description>Known malicious IP address #1</description>
+                <createdBy>AdminUser</createdBy>
+                <createdDate>2023-10-21T10:15:00Z</createdDate>
+            </entry>
+            <entry id="2" value="10.0.0.2">
+                <description>Known malicious IP address #2</description>
+                <createdBy>SecurityAnalyst</createdBy>
+                <createdDate>2023-10-20T14:30:00Z</createdDate>
+            </entry>
+            <!-- Add more IP addresses with details as needed -->
+        </entries>
+        <resourceID>UniqueIPListID</resourceID>
+        <uri>/All Lists/MaliciousIPs</uri>
+        <referenceID>IPListReference</referenceID>
+    </list>
+</lists>

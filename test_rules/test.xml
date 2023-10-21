@@ -9,11 +9,11 @@
         <WhereClause TimeWindowSize="5" TimeUnit="Minute">
             <Condition ConditionType="Positive" TableAlias="networkEvent">
                 <BasicCondition Operator="And" JoinCondition="No" Negated="No" TableAlias="networkEvent">
-                    <!-- Condition 1: Suspicious Source IP -->
+                    
                     <Variable TableAlias="networkEvent" Column="sourceIp" />
                     <Resource ID="UniqueSuspiciousIPListID" URI="/All Lists/SuspiciousIPs" ReferenceID="SuspiciousIPListReference" />
                     
-                    <!-- Condition 2: High Volume of Outbound Traffic -->
+                    
                     <Variable TableAlias="networkEvent" Column="outboundTraffic" />
                     <NumericComparison Operator="GreaterThanOrEqualTo">10000000</NumericComparison>
                 </BasicCondition>
