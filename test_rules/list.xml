@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lists>
-    <list name="MaliciousIPs">
+    <list name="SuspiciousIPs">
         <listType>Dynamic</listType>
         <entries>
             <entry id="1" value="192.168.1.100">
@@ -15,8 +15,8 @@
             </entry>
             <!-- Add more IP addresses with details as needed -->
         </entries>
-        <resourceID>UniqueIPListID</resourceID>
-        <uri>/All Lists/MaliciousIPs</uri>
-        <referenceID>IPListReference</referenceID>
+        <resourceID>UniqueSuspiciousIPListID</resourceID>
+        <uri>/All Lists/SuspiciousIPs</uri>
+        <referenceID>SuspiciousIPListReference</referenceID>
     </list>
 </lists>

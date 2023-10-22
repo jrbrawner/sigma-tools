@@ -13,7 +13,7 @@ def parse_xml_rules(db: Session):
         if ".xml" in file and "test" in file:
             data = open(f"{folder_path}/{file}", encoding="utf-8").read()
             
-            rule = ArcSightRule(data)
+            rule = ArcSightRule(data, db)
             rule_list.append(rule)
             
 

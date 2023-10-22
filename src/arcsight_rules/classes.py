@@ -2,6 +2,8 @@ import xml.etree.ElementTree as ET
 from xml.etree.cElementTree import Element
 import json
 from typing import Union
+from sqlalchemy.orm import Session
+from src.arcsight_rules.models import ArcSightRule as _ArcSightRule, ArcSightList as _ArcSightList
 
 class XMLNode:
 
@@ -37,8 +39,9 @@ class XMLNode:
 
 class ArcSightRule:
 
-    def __init__(self, raw):
+    def __init__(self, raw, db: Session):
         self.raw = raw
+        self.db = db
         parser = ET.XMLParser(encoding="utf-8")
         self.root = ET.fromstring(self.raw, parser)
 
@@ -142,7 +145,14 @@ class ArcSightRule:
                 
     def __get_list(self, reference: dict):
         
-        list = ArcSightList(reference)
+        
+        list = XMLList(reference, self.db)
+
+        list = self.db.query(_ArcSightList).filter(_ArcSightList.resource_id == reference.get("ID")).first()
+        
+        for k,v in list.get_entries().items():
+            for entry in json.loads(v):
+                print(entry)
 
     def serialize(self) -> dict:
         return {
@@ -158,18 +168,34 @@ class ArcSightRule:
             "logic" : self.logic
         }
     
+
 class ArcSightList:
 
-    def __init__(self, reference_data: dict):
+    def __init__(self, raw: str, name: str, list_type: str, entries: list[dict], resource_id: str, uri: str, reference_id: str):
+        self.raw = raw
+        self.name = name
+        self.list_type = list_type
+        self.entries = entries
+        self.resource_id = resource_id
+        self.uri = uri
+        self.reference_id = reference_id
+
+
+class XMLList:
+
+    def __init__(self, reference_data: dict, db: Session):
 
         self.reference_data : dict = reference_data
+        self.db = db
         self.raw : str = None
         self.root = None
 
-        self.list_of_lists : list[XMLNode] = None
+        self.list_of_XML_lists : list[XMLNode] = []
+        self.list_of_AS_lists : list[ArcSightList] = []
 
-        self.list_type : XMLNode = None
-        self.entries : list[XMLNode] = None
+        self.name : str = None
+        self.list_type : str = None
+        self.entries : list[dict] = []
         self.resource_id : XMLNode = None
         self.uri : XMLNode = None
         self.reference_id : XMLNode = None
@@ -177,6 +203,7 @@ class ArcSightList:
         self.__get_list_xml()
         self.__parse_xml()
         self.__parse_lists()
+        self.__save_in_database()
 
     def __get_list_xml(self):
 
@@ -197,18 +224,87 @@ class ArcSightList:
                     tag=child.tag,
                     attrib=child.attrib
                 )
-                for elem in child:
+                for elem in child.iter():
                     node1 = XMLNode(
                         text=elem.text,
                         tag=elem.tag,
                         attrib=elem.attrib
                     )
                     node.children.append(node1)
-            self.list_of_lists = node
+                del node.children[0]            
+                self.list_of_XML_lists.append(node)
 
     def __parse_lists(self):
 
-        print(self.list_of_lists.serialize())
+        lists = [x.serialize() for x in self.list_of_XML_lists]
+
+        for list in lists:
+            name = json.loads(list["attrib"])["name"]
+
+            for item in list["children"]:
+                if item["tag"] == "listType":
+                    list_type = item["text"]
+                
+                if item["tag"] == "entry":
+                    self.entries.append(item["attrib"])
+                
+                if item["tag"] == "resourceID":
+                    self.resource_id = item["text"]
+                
+                if item["tag"] == "uri":
+                    self.uri = item["text"]
+                
+                if item["tag"] == "referenceID":
+                    self.reference_id = item["text"]
+
+            list = ArcSightList(
+                raw=self.raw,
+                name=name,
+                list_type=list_type,
+                entries=self.entries,
+                resource_id=self.resource_id,
+                uri=self.uri,
+                reference_id=self.reference_id
+            )
+            self.list_of_AS_lists.append(list)
+            name = None
+            list_type = None
+            self.entries = None
+            self.resource_id = None
+            self.uri = None
+            self.reference_id = None
+            
+    def __save_in_database(self):
+
+        for list in self.list_of_AS_lists:
+
+            if self.db.query(_ArcSightList).filter(_ArcSightList.resource_id == list.resource_id).first() is None:
+
+                db_list = _ArcSightList(
+                    raw=self.raw,
+                    name=list.name,
+                    list_type=list.list_type,
+                    entries=json.dumps(list.entries),
+                    resource_id=list.resource_id,
+                    reference_id=list.reference_id
+                )
+                self.db.add(db_list)
+                self.db.commit()
+
+    def return_list(self):
+
+        for list in self.list_of_AS_lists:
+            if self.reference_data.get("ID") == list.resource_id:
+                return list
+            
+
+
+        
+            
+            
+                
+
+
         
 
                 
