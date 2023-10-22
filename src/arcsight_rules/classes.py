@@ -52,6 +52,7 @@ class ArcSightRule:
         self.rule_name = None
         self.rule_id = None
         self.logic : Union[dict[str,str], dict[str,dict]] = None
+        self.list_values : list[str] = []
 
         for child in self.root:
 
@@ -144,15 +145,19 @@ class ArcSightRule:
                     pass
                 
     def __get_list(self, reference: dict):
-        
-        
+                
         list = XMLList(reference, self.db)
 
         list = self.db.query(_ArcSightList).filter(_ArcSightList.resource_id == reference.get("ID")).first()
-        
         for k,v in list.get_entries().items():
             for entry in json.loads(v):
-                print(entry)
+                self.list_values.append(json.loads(entry).get("value"))
+        
+        for k,v in self.logic.items():
+            data = json.loads(v)
+            if type(data) == dict:
+                if data.get("ID") == list.resource_id:
+                    self.logic[k] = self.list_values
 
     def serialize(self) -> dict:
         return {
