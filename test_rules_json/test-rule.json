@@ -1,0 +1,48 @@
+{
+    "ruleName": "Full-Scope Rule",
+    "description": "A comprehensive ArcSight rule example.",
+    "enabled": true,
+    "conditions": [
+      {
+        "field": "sourceAddress",
+        "operator": "in",
+        "value": ["10.0.0.0/8", "192.168.0.0/16"]
+      },
+      {
+        "field": "destinationPort",
+        "operator": "range",
+        "value": [80, 443]
+      },
+      {
+        "field": "eventCategory",
+        "operator": "equals",
+        "value": "Web Access"
+      },
+      {
+        "field": "customField1",
+        "operator": "contains",
+        "value": "ImportantKeyword"
+      },
+      {
+        "field": "customField2",
+        "operator": "equals",
+        "value": "CustomValue"
+      }
+    ],
+    "actions": [
+      {
+        "actionType": "log",
+        "message": "Full-Scope Rule Triggered: Source IP in private range, Web access event, custom fields matched."
+      },
+      {
+        "actionType": "email",
+        "recipients": ["securityteam@example.com"],
+        "message": "Alert: Full-Scope Rule Triggered - Investigate the incident immediately."
+      },
+      {
+        "actionType": "blockIP",
+        "message": "IP Address blocked due to Full-Scope rule triggering."
+      }
+    ]
+  }
+  

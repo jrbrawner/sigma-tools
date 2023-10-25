@@ -3,7 +3,7 @@ from xml.etree.cElementTree import Element
 import json
 from typing import Union
 from sqlalchemy.orm import Session
-from src.arcsight_rules.models import ArcSightRule as _ArcSightRule, ArcSightList as _ArcSightList
+from src.arcsight_rules_xml.models import ArcSightRule as _ArcSightRule, ArcSightList as _ArcSightList
 
 class XMLNode:
 

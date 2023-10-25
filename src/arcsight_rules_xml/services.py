@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 import xml.etree.ElementTree as ET
 import os
-from src.arcsight_rules.classes import ArcSightRule
+from src.arcsight_rules_xml.classes import ArcSightRule
 
 folder_path = "test_rules"
 

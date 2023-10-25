@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from src.dependencies import get_db
-from src.arcsight_rules import services
+from src.arcsight_rules_xml import services
 from fastapi.responses import JSONResponse
 
 router = APIRouter()
