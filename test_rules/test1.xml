@@ -1,0 +1,64 @@
+<Rule Name="ComplexCorrelationRule" Type="Advanced" ID="UniqueIDABCDE">
+    <Description>
+        This rule detects suspicious activity related to multiple conditions, including failed logins, high data transfer, and access to sensitive files. It triggers when all conditions are met within a 10-minute window.
+    </Description>
+    <Query>
+        <FromClause>
+            <Table Name="Event" Alias="event1" AliasType="Positive" />
+        </FromClause>
+        <WhereClause TimeWindowSize="10" TimeUnit="Minute" Threshold="1">
+            <!-- Condition 1: Failed Logins -->
+            <Condition ConditionType="Positive" TableAlias="event1">
+                <BasicCondition Operator="Equals" JoinCondition="No" Negated="No" TableAlias="event1" IgnoreCase="No">
+                    <Variable TableAlias="event1" Column="eventCategory" />
+                    <Constant>Authentication Failure</Constant>
+                </BasicCondition>
+            </Condition>
+
+            <!-- Condition 2: High Data Transfer -->
+            <Condition ConditionType="Positive" TableAlias="event1">
+                <BasicCondition Operator="GreaterThan" JoinCondition="And" Negated="No" TableAlias="event1" IgnoreCase="No">
+                    <Variable TableAlias="event1" Column="bytesOut" />
+                    <Constant>1000000</Constant>
+                </BasicCondition>
+            </Condition>
+
+            <!-- Condition 3: Access to Sensitive Files -->
+            <Condition ConditionType="Positive" TableAlias="event1">
+                <BasicCondition Operator="In" JoinCondition="And" Negated="No" TableAlias="event1" IgnoreCase="No">
+                    <Variable TableAlias="event1" Column="fileName" />
+                    <Constant>sensitive_file.txt</Constant>
+                    <Constant>confidential_data.doc</Constant>
+                </BasicCondition>
+            </Condition>
+        </WhereClause>
+        <GroupByClause>
+            <Variable TableAlias="event1" Column="sourceAddress" />
+        </GroupByClause>
+    </Query>
+    <Actions>
+        <Action Event="OnFirstEvent">
+            <SendToConsole />
+        </Action>
+        <Action Event="OnFirstEvent">
+            <SetEventField EventFieldName="agentSeverity" EventFieldValue="High" />
+        </Action>
+        <Action Event="OnFirstEvent" Enabled="true">
+            <SendToNotifier AckRequired="Yes" NotificationMessage="Suspicious activity detected: multiple conditions met within a 10-minute window.">
+                <Resource URI="/All Destinations/SOC Operators/" ID="UniqueDestinationID" ReferenceID="CustomDestinationReference" />
+            </SendToNotifier>
+        </Action>
+        <Action Event="OnRepeatEvent" Enabled="true">
+            <SendToNotifier AckRequired="No" NotificationMessage="Suspicious activity continues: multiple conditions met within a 10-minute window.">
+                <Resource URI="/All Destinations/SOC Operators/" ID="UniqueDestinationID" ReferenceID="CustomDestinationReference" />
+            </SendToNotifier>
+        </Action>
+        <Action Event="OnThresholdExceeded" Enabled="true">
+            <CreateNewCase CaseName="Suspicious Activity - Multiple Conditions" CaseDescription="Case for suspicious activity with multiple conditions" Priority="2" Status="Unassigned">
+                <CaseGroup>
+                    <Resource URI="/All Cases/CustomCasePath" ID="UniqueCaseGroupID" ReferenceID="CustomCaseGroupReference" />
+                </CaseGroup>
+            </CreateNewCase>
+        </Action>
+    </Actions>
+</Rule>

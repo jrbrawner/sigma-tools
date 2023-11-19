@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from src.db import Base, engine
-from src.sigma.router import router as sigma_router
+from src.arcsight_sigma.router import router as sigma_router
 from src.arcsight_rules_xml.router import router as rules_router
 from src.arcsight_rules_json.router import router as json_rules_router
 

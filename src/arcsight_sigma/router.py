@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile
 from sqlalchemy.orm import Session
 from src.dependencies import get_db
-from src.sigma import services
+from src.arcsight_sigma import services
 from typing import Union
 
 router = APIRouter()
@@ -19,4 +19,9 @@ def create_sigma_files(files: list[UploadFile], db: Session = Depends(get_db)):
     if sigma_rule_list is None:
         raise HTTPException(400,"Error in creating sigma rules.")
     return sigma_rule_list
+
+@router.post("/api/convert-arcsight-to-sigma", tags=['sigma'])
+def convert_arcsight_to_sigma(db: Session = Depends(get_db)):
+    result = services.convert_arcsight_to_sigma(db)
+    return result
 

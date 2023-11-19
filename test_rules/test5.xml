@@ -1,0 +1,50 @@
+<Rule Name="ComplexCorrelationRuleWithFilter" Type="Advanced" ID="UniqueIDXYZ123">
+    <Description>
+        This rule detects complex security incidents based on various conditions, including failed logins, high data transfer, and access to sensitive files. It triggers when all conditions are met within a 15-minute window, applying a custom filter for specific events.
+    </Description>
+    <Query>
+        <FromClause>
+            <Table Name="Event" Alias="event1" AliasType="Positive" />
+        </FromClause>
+        <WhereClause TimeWindowSize="15" TimeUnit="Minute" Threshold="1">
+            <!-- Condition 1: Failed Logins -->
+            <Condition ConditionType="Positive" TableAlias="event1">
+                <BasicCondition Operator="Equals" JoinCondition="And" Negated="No" TableAlias="event1" IgnoreCase="No">
+                    <Variable TableAlias="event1" Column="eventCategory" />
+                    <Constant>Authentication Failure</Constant>
+                </BasicCondition>
+            </Condition>
+
+            <!-- Condition 2: High Data Transfer -->
+            <Condition ConditionType="Positive" TableAlias="event1">
+                <BasicCondition Operator="GreaterThan" JoinCondition="And" Negated="No" TableAlias="event1" IgnoreCase="No">
+                    <Variable TableAlias="event1" Column="bytesOut" />
+                    <Constant>1000000</Constant>
+                </BasicCondition>
+            </Condition>
+
+            <!-- Condition 3: Access to Sensitive Files -->
+            <Condition ConditionType="Positive" TableAlias="event1">
+                <BasicCondition Operator="In" JoinCondition="And" Negated="No" TableAlias="event1" IgnoreCase="No">
+                    <Variable TableAlias="event1" Column="fileName" />
+                    <Constant>sensitive_file.txt</Constant>
+                    <Constant>confidential_data.doc</Constant>
+                </BasicCondition>
+            </Condition>
+
+            <!-- Condition 4: Use of Custom Filter -->
+            <Condition ConditionType="Positive" TableAlias="event1">
+                <BasicCondition Operator="InFilter" JoinCondition="And" Negated="No" TableAlias="event1" IgnoreCase="No">
+                    <Variable TableAlias="event1" Column="customField1" />
+                    <Filter URI="/All Filters/CustomFilterName" ID="UniqueFilterID" ReferenceID="CustomFilterReference" />
+                </BasicCondition>
+            </Condition>
+        </WhereClause>
+        <GroupByClause>
+            <Variable TableAlias="event1" Column="sourceAddress" />
+        </GroupByClause>
+    </Query>
+    <Actions>
+        <!-- Actions can be customized based on the specific use case -->
+    </Actions>
+</Rule>
