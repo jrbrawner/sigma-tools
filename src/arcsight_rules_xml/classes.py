@@ -216,7 +216,7 @@ class ArcSightRuleXML:
                     if condition["children"][idx-1].get("attrib") is not None:   
                         temp.add_field(condition["children"][idx-1].get("attrib").get("Column"))
                 
-                #handle filter reference
+                #handle filter reference, presumably occuring in place of constant
                 elif entry["tag"] == "Filter":
                     
                     filter_id = entry["attrib"]["ID"]
@@ -254,7 +254,7 @@ class ArcSightRuleXML:
 
     def __assemble_condition_string(self):
         condition_string = ""
-        print(self.condition_list)
+        #print(self.condition_list)
         for k,v in self.condition_list.items():
             if len(v) > 1:
                 for idx, elem in enumerate(v):

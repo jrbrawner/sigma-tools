@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile
 from sqlalchemy.orm import Session
 from src.dependencies import get_db
 from src.publish import services
-from typing import Union
 
 router = APIRouter()
 

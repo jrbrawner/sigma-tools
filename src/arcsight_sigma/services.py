@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sigma.rule import SigmaRule
 from fastapi import UploadFile
-from src.arcsight_rules_xml.models import ArcSightRule
+from src.arcsight_rules_xml.models import ArcSightRuleXML
 from src.arcsight_sigma.classes import ArcSightToSigma
 
 def create_sigma_rules_text(db: Session, rules_text: str):
@@ -28,7 +28,7 @@ def convert_arcsight_to_sigma(db: Session, files: list[UploadFile]):
             print(rule.detection.to_dict())
             print("\n")
 
-    rules = db.query(ArcSightRule).all()
+    rules = db.query(ArcSightRuleXML).all()
 
     rule_list = []
     

@@ -1,4 +1,4 @@
-from src.arcsight_rules_xml.models import ArcSightRule
+from src.arcsight_rules_xml.models import ArcSightRuleXML
 from sigma.rule import SigmaRule, SigmaDetections, SigmaDetection, SigmaDetectionItem, SigmaLogSource
 from sigma.modifiers import SigmaContainsModifier, SigmaCompareModifier, SigmaExistsModifier, SigmaAllModifier
 from sigma.conditions import ConditionAND, ConditionOR, ConditionNOT
@@ -7,7 +7,7 @@ import json
 
 class ArcSightToSigma:
 
-    def __init__(self, arcsight_rule: ArcSightRule):
+    def __init__(self, arcsight_rule: ArcSightRuleXML):
 
         self.arcsight_rule = arcsight_rule
         self.arcsight_rule.sigma_metadata = json.loads(self.arcsight_rule.sigma_metadata)

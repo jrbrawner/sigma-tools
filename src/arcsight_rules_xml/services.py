@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 import xml.etree.ElementTree as ET
 import os
 from src.arcsight_rules_xml.classes import ArcSightRuleXML
-from src.arcsight_rules_xml.models import ArcSightRule
+from src.arcsight_rules_xml.models import ArcSightRuleXML as _ArcSightRuleXML
 
 folder_path = "test_rules"
 
@@ -17,8 +17,8 @@ def parse_xml_rules(db: Session):
 
             
 
-            if db.query(ArcSightRule).filter(ArcSightRule.resource_id == rule.rule_id).first() is None:
-                db_rule = ArcSightRule(
+            if db.query(_ArcSightRuleXML).filter(_ArcSightRuleXML.resource_id == rule.rule_id).first() is None:
+                db_rule = _ArcSightRuleXML(
                     resource_id=rule.rule_id,
                     raw=rule.raw,
                     name=rule.rule_name,

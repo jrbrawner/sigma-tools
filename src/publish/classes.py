@@ -1,36 +1,27 @@
-from elasticsearch import Elasticsearch, NotFoundError, ConflictError
-from src.settings import settings
-from src.arcsight_rules_xml.models import ArcSightRule
+from elasticsearch import NotFoundError, ConflictError
+from src.jrb.ElasticClient import ElasticClient
 
-class ArcSightToElasticIndex:
+class PublishToElasticIndex(ElasticClient):
 
-    def __init__(self, arcsight_rules_xml : list[ArcSightRule]):
+    def __init__(self, objects : list[object], index: str):
+        """
+        Can pass in any objects to this class to create / update documents in an Elastic Index.
+        Objects must have a resource_id, create_es method and update_es method.
+        """
+        super().__init__()
+        self.objects : list[object] = objects
+        self.index = index
 
-        self.arcsight_rules_xml : list[ArcSightRule] = arcsight_rules_xml
-        self.index = "test-sigma"
-        self.client = None
-
-        self.__create_client()
-
-    def __create_client(self):
-        self.client = Elasticsearch(
-            settings.ES_URL,
-            api_key=settings.ES_API_KEY,
-            verify_certs=False
-        )
-
-    def publish_rules(self):
+    def publish_objects(self):
         
-        for rule in self.arcsight_rules_xml:
-
-            rule = rule.serialize()
-            exists = self.__check_if_rule_exists(rule.get("resource_id"))
-
+        for rule in self.objects:
+            exists = self.__check_if_rule_exists(rule.resource_id)
             if exists is None:
                 self.__create_rule_document(rule)
             else:
                 self.__update_rule_document(rule)
-
+        
+        return "All rules published or updated."
 
     def __check_if_rule_exists(self, document_id : str):
         
@@ -41,8 +32,9 @@ class ArcSightToElasticIndex:
             result = None
             return result
 
-    def __create_rule_document(self, rule: dict):
+    def __create_rule_document(self, rule: object):
         
+        rule = rule.create_es()
         resource_id = rule.get("resource_id")
         del rule["resource_id"]
         document = rule
@@ -54,7 +46,8 @@ class ArcSightToElasticIndex:
             print("Rule already exists!")
             pass
 
-    def __update_rule_document(self, rule: dict):
+    def __update_rule_document(self, rule: object):
+        rule = rule.update_es()
         resource_id = rule.get("resource_id")
         del rule["resource_id"]
         document = rule
@@ -63,5 +56,4 @@ class ArcSightToElasticIndex:
                         id=resource_id,
                         doc=document)
         #print("Document updated.")
-        
 
