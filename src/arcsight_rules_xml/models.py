@@ -12,3 +12,12 @@ class ArcSightRule(Base):
     condition_string = Column(String)
     sigma_metadata = Column(String)
 
+    def serialize(self):
+        return {
+            "resource_id" : self.resource_id,
+            "name" : self.name,
+            "description" : self.description,
+            "condition_string" : self.condition_string,
+            "raw" : self.raw
+        }
+

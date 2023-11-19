@@ -21,7 +21,7 @@ def create_sigma_files(files: list[UploadFile], db: Session = Depends(get_db)):
     return sigma_rule_list
 
 @router.post("/api/convert-arcsight-to-sigma", tags=['sigma'])
-def convert_arcsight_to_sigma(db: Session = Depends(get_db)):
-    result = services.convert_arcsight_to_sigma(db)
+def convert_arcsight_to_sigma(files: list[UploadFile], db: Session = Depends(get_db)):
+    result = services.convert_arcsight_to_sigma(db, files)
     return result
 

@@ -28,11 +28,13 @@ class Condition:
         self.field.reverse()
         self.variable.reverse()
 
-    def preserve_condition_metadata(self, dict):
-        """Save condition data while still in list."""
-        dict["fields"] = copy.deepcopy(self.field)
-        dict["operators"] = copy.deepcopy(self.operator)
-        dict["variables"] = copy.deepcopy(self.variable)
+    def preserve_condition_metadata(self, condition_data: dict, join_condition):
+        """Save condition data while still in list. Used later for constructing Sigma objects."""
+        
+        if condition_data.get(join_condition) is None:
+            condition_data[join_condition] = [{"field" : copy.copy(self.field), "operator" : copy.copy(self.operator), "value" : copy.copy(self.variable)}]
+        else:
+            condition_data[join_condition].append({"field" : copy.copy(self.field), "operator" : copy.copy(self.operator), "value" : copy.copy(self.variable)})
 
     def create_condition_string(self):
         
@@ -237,13 +239,14 @@ class ArcSightRuleXML:
                         temp.add_field(condition["children"][idx-1].get("attrib").get("Column"))
                         
             temp.reverse()
-            temp.preserve_condition_metadata(self.condition_data)
             #print("\n")
             if condition_list.get(join_condition) is None:
+                temp.preserve_condition_metadata(self.condition_data, join_condition)
                 condition_list[join_condition] = [temp.create_condition_string()]
                 while len(temp.field) > 0:
                     condition_list[join_condition].append(temp.create_condition_string())
             else:
+                temp.preserve_condition_metadata(self.condition_data, join_condition)
                 condition_list[join_condition].append(temp.create_condition_string())
 
                 
@@ -251,7 +254,7 @@ class ArcSightRuleXML:
 
     def __assemble_condition_string(self):
         condition_string = ""
-        
+        print(self.condition_list)
         for k,v in self.condition_list.items():
             if len(v) > 1:
                 for idx, elem in enumerate(v):

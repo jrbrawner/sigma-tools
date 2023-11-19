@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_PORT: str
     ENVIRONMENT: str
+    ES_API_KEY: str
+    ES_URL: str
+
 
     class Config:
         env_file = ".env"
