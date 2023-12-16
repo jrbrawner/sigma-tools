@@ -1,0 +1,50 @@
+<Rule>
+    <Name>Coordinated External Attack with Insider Assistance</Name>
+    <Condition>
+        <And>
+            <!-- Multiple failed login attempts from external sources -->
+            <And>
+                <Field name="sourceZone">External</Field>
+                <Field name="Category/Behavior">Authentication</Field>
+                <Field name="Outcome">Fail</Field>
+                <Count operator="greaterThan">10</Count>
+            </And>
+
+            <!-- Unusual internal activities -->
+            <And>
+                <!-- Access to critical infrastructure -->
+                <Field name="destinationResource">Critical_Infrastructure</Field>
+                
+                <!-- Unusual time for activity -->
+                <TimeOfDay start="00:00" end="05:00" />
+                
+                <!-- Large data upload to external server -->
+                <And>
+                    <Field name="Category/Behavior">Data Upload</Field>
+                    <Field name="destinationZone">External</Field>
+                    <Field name="dataVolume" operator="greaterThan">500MB</Field>
+                </And>
+            </And>
+
+            <!-- Additional suspicious activities -->
+            <Or>
+                <!-- Usage of unauthorized software -->
+                <Field name="software">Unauthorized_Application</Field>
+
+                <!-- Connection to known malicious IP -->
+                <Field name="destinationIP">Malicious_IP_List</Field>
+
+                <!-- Anomaly in usual user behavior -->
+                <Field name="userBehavior">Anomalous</Field>
+            </Or>
+        </And>
+    </Condition>
+    <GroupBy>/All_Events/userName</GroupBy>
+    <TimeWindow>7200</TimeWindow> <!-- Time window of 2 hours -->
+    <Actions>
+        <Action>
+            <Type>Alert</Type>
+            <Severity>High</Severity>
+        </Action>
+    </Actions>
+</Rule>
