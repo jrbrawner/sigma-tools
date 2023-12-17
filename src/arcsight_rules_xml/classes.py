@@ -1,7 +1,112 @@
 import xmltodict
 from treelib import Tree, Node
-from collections import abc
-from collections.abc import Iterator
+
+class ConditionNode:
+    
+    def __init__(self, condition_list : list[list]):
+
+        self.condition_list = condition_list
+        self.keyword_list : list[str] = ["And", "Or", "Not"]
+
+        self.keywords : list[str] = []
+        self.data : list[list] = []
+
+        self.last_keyword_index = []
+        self.first_keyword : str = None
+        self.last_keyword : str = None
+
+        self.__get_keywords()
+        self.__get_data()
+        self.__set_last_keyword_index()
+
+    def __get_keywords(self):
+        
+        for condition in self.condition_list:
+            if condition in self.keyword_list:
+                self.keywords.append(condition)
+
+    def __get_data(self):
+        for condition in self.condition_list:
+            if condition not in self.keyword_list:
+                self.data.append(condition)
+
+    def __set_last_keyword_index(self):
+        self.last_keyword_index = len(self.keywords) - 1
+        self.first_keyword = self.keywords[0]
+        self.last_keyword = self.keywords[self.last_keyword_index]
+
+    def __repr__(self) -> str:
+        return str(self.condition_list) 
+
+
+class ConditionList:
+    
+    def __init__(self, generator):
+
+        self.generator = generator
+        self.generator_list = list(generator)
+
+        self.tree : Tree = Tree()
+        self.condition_list : list[ConditionNode] = []
+        self.identifiers : list[ConditionNode] = []
+        
+        self.__get_condition_list()
+        self.__build_tree()
+
+    def __get_condition_list(self):
+
+        #get root of conditions (generator converted 2d array)
+        root = self.generator_list[0][0]
+        root = self.tree.create_node(root)
+        #remove root from 2d array
+        [x.pop(0) for x in self.generator_list]
+        
+        self.condition_list = [ConditionNode(x) for x in self.generator_list]
+
+    def __build_tree(self):
+
+        self.identifiers = self.condition_list
+       
+        temp_condition = None
+        ### creating a node for each new unique condition, and linking back to appropriate parent
+        for item in self.condition_list:
+            if item.keywords != temp_condition:
+                try:
+                    node = self.tree.create_node(item.last_keyword, None, item.condition_list[item.last_keyword_index-1], None)
+                except:
+                    node = self.tree.create_node(item.last_keyword, None, self.tree.root, None)
+                for entry in self.condition_list:
+                    if entry.condition_list[item.last_keyword_index] == item.last_keyword:
+                        entry.condition_list[item.last_keyword_index] = node.identifier
+                        
+                temp_condition = item.keywords
+        
+        
+        temp = None
+        data = []
+        for entry in self.condition_list:
+            
+            if temp != entry.condition_list[entry.last_keyword_index]:
+                if len(data) > 0:
+                    node = self.tree.get_node(temp)
+                    node.data = str(data)
+                    data.clear()
+                    data.append(entry.data)
+                else:
+                    data.append(entry.data)
+            else:
+                data.append(entry.data)
+            temp = entry.condition_list[entry.last_keyword_index]
+
+        node = self.tree.get_node(temp)
+        if node is not None:
+            node.data = data
+
+    
+
+                
+        
+
 
 class ArcSight2Sigma:
 
@@ -19,8 +124,6 @@ class ArcSight2Sigma:
         self.convert_to_json()
         self.create_condition_tree()
         
-        
-
     def convert_to_json(self) -> None:
         """Convert the XML data to JSON using xmltodict library
 
@@ -41,39 +144,14 @@ class ArcSight2Sigma:
         """
         
         result = self.dict_generator(self.json_data.get("Rule").get("Condition"))
-        result = list(result)
-        keywords = ["And", "Or", "Not"]
 
-        #get root of conditions (generator converted 2d array)
-        root = result[0][0]
-        root = self.condition_tree.create_node(root)
-        #remove root from 2d array
-        [x.pop(0) for x in result]
-        conditions = []
+        condition_list = ConditionList(result)
+        self.condition_tree = condition_list.tree
 
-        for entry in result:
-            counter = 0
-            for item in entry:
-                if item in keywords:
-                    counter += 1
-                elif item not in keywords:
-                    conditions.append(entry[0:counter])
-                    break
-                else:
-                    pass
-        
-        
-        
-        
+        s = self.condition_tree.all_nodes_itr()
 
-
-    def iter_condition_tree(self, condition, data, parent_node):
-        """Enumerate all of the root node children and expand them into subsequent child nodes as necessary.
-        Args:
-            None: Uses condition tree
-        Returns:
-            None
-        """
+        for x in s: print(x, "\n")
+        
 
     def dict_generator(self, indict, pre=None):
         pre = pre[:] if pre else []

@@ -1,0 +1,43 @@
+<Rule>
+    <Name>Complex Multi-Faceted Cyber Attack Detection</Name>
+    <Condition>
+        <And>
+            <!-- Layer 1: External threat indicators -->
+            <Or>
+                <!-- Layer 2: Suspicious external source activities -->
+                <And>
+                    <Field name="sourceZone">External</Field>
+                    <Field name="activityType">Suspicious</Field>
+                </And>
+                <!-- Layer 2: High volume of external traffic -->
+                <Field name="trafficVolume" operator="greaterThan">1TB</Field>
+            </Or>
+
+            <!-- Layer 1: Insider threat indicators -->
+            <And>
+                <!-- Layer 2: After-hours internal activity -->
+                <Not>
+                    <TimeOfDay start="08:00" end="18:00" />
+                </Not>
+
+                <!-- Layer 2: Access to sensitive resources -->
+                <And>
+                    <Or>
+                        <!-- Layer 4: Specific conditions for sensitive access -->
+                        <Field name="accessMethod">UnauthorizedMethod</Field>
+                        <Field name="userRole">NonPrivileged</Field>
+                    </Or>
+                </And>
+            </And>
+
+        </And>
+    </Condition>
+    <GroupBy>/All_Events/userName</GroupBy>
+    <TimeWindow>10800</TimeWindow> <!-- Time window of 3 hours -->
+    <Actions>
+        <Action>
+            <Type>Alert</Type>
+            <Severity>Critical</Severity>
+        </Action>
+    </Actions>
+</Rule>
