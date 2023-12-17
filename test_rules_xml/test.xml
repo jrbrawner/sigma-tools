@@ -8,9 +8,6 @@
                 <TimeOfDay start="22:00" end="23:59" />
             </Or>
             
-            <!-- Condition for accessing sensitive resources -->
-            <Field name="destinationResource">Sensitive</Field>
-            
             <!-- Complex condition combining data transfer and external connections -->
             <And>
                 <Field name="Category/Behavior">Data Transfer</Field>
@@ -19,9 +16,6 @@
                     <Field name="sourceZone">Trusted</Field>
                 </Not>
             </And>
-            
-            <!-- Additional condition for high volume of data transfer -->
-            <Field name="dataVolume" operator="greaterThan">100MB</Field>
         </And>
     </Condition>
     <GroupBy>/All_Events/userName</GroupBy>

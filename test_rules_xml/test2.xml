@@ -12,12 +12,6 @@
 
             <!-- Unusual internal activities -->
             <And>
-                <!-- Access to critical infrastructure -->
-                <Field name="destinationResource">Critical_Infrastructure</Field>
-                
-                <!-- Unusual time for activity -->
-                <TimeOfDay start="00:00" end="05:00" />
-                
                 <!-- Large data upload to external server -->
                 <And>
                     <Field name="Category/Behavior">Data Upload</Field>
@@ -37,6 +31,7 @@
                 <!-- Anomaly in usual user behavior -->
                 <Field name="userBehavior">Anomalous</Field>
             </Or>
+
         </And>
     </Condition>
     <GroupBy>/All_Events/userName</GroupBy>

@@ -10,9 +10,11 @@ router = APIRouter()
 async def parse_xml_rules():
     
     for file in os.listdir("test_rules_xml"):
-        if file == "test2.xml":
+        if file == "test.xml":
             data = open(f"test_rules_xml/{file}").read()
             converter = ArcSight2Sigma(data)
-    return converter.condition_tree.to_json()
+            converter.condition_tree.to_graphviz()
+    
+    
     
 
