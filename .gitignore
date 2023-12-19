@@ -5,3 +5,4 @@ development.db
 __pycache__
 /*.pytest_cache
 .env
+test_rules_xml

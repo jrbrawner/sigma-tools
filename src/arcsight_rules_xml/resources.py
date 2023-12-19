@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends
 from src.dependencies import get_db
 import os
-import xmltodict
-from src.arcsight_rules_xml.classes import ArcSight2Sigma
+from src.arcsight_rules_xml.classes import ParseArcSightConditonsXML
 
 router = APIRouter()
 
@@ -10,10 +9,12 @@ router = APIRouter()
 async def parse_xml_rules():
     
     for file in os.listdir("test_rules_xml"):
-        if file == "test4.xml":
+        if file == "test5adv.xml":
             data = open(f"test_rules_xml/{file}").read()
-            converter = ArcSight2Sigma(data)
-            converter.condition_tree.to_graphviz()
+            converter = ParseArcSightConditonsXML(data)
+            #converter.condition_tree.to_graphviz()
+    
+    return converter.json_data
     
     
     
