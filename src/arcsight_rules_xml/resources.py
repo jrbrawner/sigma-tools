@@ -14,7 +14,7 @@ async def parse_xml_rules():
             converter = ParseArcSightConditonsXML(data)
             #converter.condition_tree.to_graphviz()
     
-    return converter.json_data
+    return "Done"
     
     
     

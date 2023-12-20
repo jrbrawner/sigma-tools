@@ -1,6 +1,8 @@
 import xmltodict
 from treelib import Tree, Node
 import xml.etree.ElementTree as ET
+import yaml
+import json
 
 class ParseArcSightConditonsXML:
 
@@ -15,39 +17,55 @@ class ParseArcSightConditonsXML:
         self.json_data : dict = xmltodict.parse(self.xml_data)
         self.conditions : dict = self.json_data.get("Rule").get("Query").get("WhereClause").get("Condition")
 
-        self.temp : dict = {}
+        self.conditions_data : dict = {}
+        self.test : list = []
         
-        self.keywords = ["Not", "And", "Or"]
-
-        self.parse_xml()
+        self.parse_xml_1()
         
 
-    def parse_xml(self):
+    def parse_xml_1(self):
         
-        self.get_all_values(self.conditions)
+        root = ET.fromstring(self.xml_data)
 
-    def get_all_values(self, obj, level=0):
-        """Walk through a dictionary of dicts and lists."""
-        if type(obj) is dict:
-            for key, value in obj.items():
-                if type(value) in [dict, list]:
-                    print('    ' * level, key, sep='')
-                    level = level + 1
-                    self.get_all_values(value, level)
-                    level = level - 1
-                else:
-                    print('    ' * (level), key, ': ', value, sep='')
-        elif type(obj) is list:
-            for i, element in enumerate(obj):
-                if type(element) in [dict, list]:
-                    print('    ' * level, i, sep='')
-                    level = level + 1
-                    self.get_all_values(element, level)
-                    level = level - 1
-                else:
-                    print('    ' * (level), element, sep='')
-        else:
-            raise ValueError
+        # Extract relevant information
+        rule_name = root.get('Name')
+        conditions = []
+
+        for condition in root.findall(".//BasicCondition"):
+            column = condition.find('.//Variable').get('Column')
+            value = condition.find('.//Value').text
+            operator = condition.get('Operator')
+            conditions.append({'column': column, 'value': value, 'operator': operator})
+
+        print(conditions)
+        # Prepare Sigma rule structure
+        sigma_rule = {
+            'title': rule_name,
+            'status': 'experimental',
+            'description': 'Converted from ArcSight rule',
+            'logsource': {
+                'product': 'network',  # Adjust this based on your environment
+            },
+            'detection': {
+                'condition': ' and '.join(f"{c['column']} {c['operator'].lower()} {c['value']}" for c in conditions)
+            },
+            'falsepositives': ['Unknown'],  # Define based on your understanding
+            'level': 'high'  # Set the appropriate level
+        }
+
+        # Convert to YAML format
+        sigma_yaml = yaml.dump(sigma_rule, sort_keys=False)
+
+        print(sigma_yaml)
+
+    
+        
+
+
+    
+
+
+    
 
 
 
