@@ -14,13 +14,11 @@ class ParseArcSightConditonsXML:
         
         """
         self.xml_data : str = xml_data
-        self.json_data : dict = xmltodict.parse(self.xml_data)
-        self.conditions : dict = self.json_data.get("Rule").get("Query").get("WhereClause").get("Condition")
+        self.condition_str : str = ""
 
-        self.conditions_data : dict = {}
-        self.test : list = []
         
-        self.parse_xml_1()
+        
+        self.parse_xml_2()
         
 
     def parse_xml_1(self):
@@ -58,7 +56,84 @@ class ParseArcSightConditonsXML:
 
         print(sigma_yaml)
 
+    def parse_xml_2(self):
+
+        sigma_rule = self.arcsight_xml_to_sigma(self.xml_data)
+
+        print(sigma_rule)
+
+    def parse_conditions(self, element):
+        conditions = []
+        for child in element:
+            if child.tag in ['And', 'Or', 'Not']:
+                nested_conditions = self.parse_conditions(child)
+                if child.tag == 'Not':
+                    conditions.append(f"not ({' and '.join(nested_conditions)})")
+                else:
+                    joiner = ' and ' if child.tag == 'And' else ' or '
+                    conditions.append(f"({joiner.join(nested_conditions)})")
+            elif child.tag == 'BasicCondition':
+                column = child.find('.//Variable').get('Column')
+                value = child.find('.//Value').text
+                operator = child.get('Operator').lower()
+                conditions.append(f"{column} {operator} {value}")
+        return conditions
     
+    def parse_basic_condition(self, basic_condition):
+        """Parse a basic condition from the ArcSight XML and convert it to Sigma format."""
+        operator = basic_condition.attrib['Operator']
+        column = basic_condition.find('.//Variable').attrib['Column']
+        value = basic_condition.find('.//Value').text
+
+        # Map ArcSight operator to Sigma condition
+        sigma_operator = {
+            'GreaterThan': '>',
+            'Equals': '==',
+            'In': 'in',
+            'NotIn': 'not in'
+        }.get(operator, operator)
+
+        return f"{column} {sigma_operator} {value}"
+
+    def parse_condition(self, condition):
+        """Parse a condition (AND, OR, NOT) from ArcSight XML and convert to Sigma format."""
+        condition_type = condition.tag
+        conditions = []
+
+        for child in condition:
+            if child.tag in ['And', 'Or', 'Not']:
+                conditions.append(self.parse_condition(child))
+            elif child.tag == 'BasicCondition':
+                conditions.append(self.parse_basic_condition(child))
+
+        if condition_type == 'And':
+            return f"({') and ('.join(conditions)})"
+        elif condition_type == 'Or':
+            return f"({') or ('.join(conditions)})"
+        elif condition_type == 'Not':
+            return f"(not ({conditions[0]}))"
+        else:
+            return ''
+
+    def arcsight_xml_to_sigma(self, xml_string):
+        """Convert ArcSight XML rule to Sigma rule."""
+        root = ET.fromstring(xml_string)
+        rule_name = root.attrib['Name']
+
+        sigma_rule = {
+            'title': rule_name,
+            'logsource': {
+                'category': 'network'
+            },
+            'detection': {}
+        }
+
+        for condition in root.findall('.//Condition'):
+            
+            sigma_condition = self.parse_condition(condition)
+            sigma_rule['detection']['condition'] = sigma_condition
+
+        return yaml.dump(sigma_rule, sort_keys=False)
         
 
 
